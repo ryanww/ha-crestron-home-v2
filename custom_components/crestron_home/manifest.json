@@ -1,13 +1,20 @@
 {
   "domain": "crestron_home",
   "name": "Crestron Home (CRPC Bridge)",
-  "codeowners": ["@ruudruud", "@YOURUSER"],
+  "codeowners": [
+    "@ryanww",
+    "@ruudruud"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/YOURUSER/ha-crestron-home-v2",
   "integration_type": "hub",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/YOURUSER/ha-crestron-home-v2/issues",
-  "loggers": ["custom_components.crestron_home"],
-  "requirements": ["aiohttp>=3.8.0"],
-  "version": "1.0.0"
+  "loggers": [
+    "custom_components.crestron_home"
+  ],
+  "requirements": [
+    "aiohttp>=3.8.0"
+  ],
+  "version": "1.0.1"
 }
