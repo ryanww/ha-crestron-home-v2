@@ -1,45 +1,57 @@
-# Home Assistant Integration for Crestron Home
+# ha-crestron-home-v2 — Crestron Home (CRPC Bridge) for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![GitHub Release](https://img.shields.io/github/release/ruudruud/ha-crestron-home.svg)](https://github.com/ruudruud/ha-crestron-home/releases)
-[![GitHub License](https://img.shields.io/github/license/ruudruud/ha-crestron-home.svg)](LICENSE)
+[![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-This repository contains a custom component for Home Assistant that integrates with Crestron Home systems. It allows you to control your Crestron Home devices (lights, shades, scenes) and monitor sensors through Home Assistant.
+This repository contains a custom component for Home Assistant that integrates with Crestron Home systems through a local **CRPC bridge** sidecar (a Go server that speaks the native Crestron CRPC protocol and exposes it as REST + WebSocket, typically running as a Home Assistant add-on).
+
+Based on [ha-crestron-home](https://github.com/ruudruud/ha-crestron-home) by @ruudruud, MIT.
 
 ## Overview
 
-The integration communicates with the Crestron Home CWS (Crestron Web Service) server via HTTPS to discover and control devices in your Crestron Home system.
+Instead of polling the Crestron `/cws/api` web API, this integration talks to the CRPC bridge on your local network:
+
+- **REST** (`http://<bridge>:<port>`) for discovery and commands
+- **WebSocket** (`ws://<bridge>:<port>/ws/json`) for instant push state updates (`iot_class: local_push`)
+
+State changes made on Crestron keypads, the Crestron Home app, or by schedules appear in Home Assistant immediately. A slow safety-net refresh (every 5 minutes) re-fetches everything in case an event was missed.
 
 ## Features
 
-- **Lights**: Control Crestron Home lights (dimmers with brightness control, switches with on/off)
-- **Shades**: Control Crestron Home shades (open, close, set position, stop movement)
-- **Scenes**: Activate Crestron Home scenes with room-based organization
-- **Sensors**: Support for Crestron Home sensors:
-  - Occupancy sensors (binary sensors for presence detection)
-  - Door sensors (binary sensors with battery level reporting)
-  - Photo sensors (illuminance measurement in lux)
-- **Configuration Flow**: Easy setup through the Home Assistant UI
-- **Automatic Discovery**: Automatically discovers all compatible devices
-- **Room-Based Organization**: Devices are automatically organized by room on the Home Assistant dashboard
+- **Lights**: dimmers (brightness) and switched loads (on/off)
+- **Shades**: open, close, stop, set position (with opening/closing feedback)
+- **Scenes**: recall any Crestron Home scene (light, shade, media scenes)
+- **Climate**: thermostats — HVAC mode, heat/cool/auto setpoints (including dual-setpoint auto), fan mode, current temperature, and HVAC action
+- **Media Players**: one player per Crestron media room — power, volume, mute, source selection (routing), transport controls (play/pause/stop/next/previous), and now-playing metadata including artwork
+- **Doors**: door/lock/gate open-closed state as binary sensors
+- **Push updates**: no polling delay; the bridge pushes every device event
+- **Room-Based Organization**: entities are grouped into one Home Assistant device per Crestron room, with the room name as the suggested area
 
 ### Supported Device Types
 
-| Crestron Device Subtype | Home Assistant Entity | Features | Testing Status |
-|-------------------------|------------------------|----------|----------------|
-| Dimmer                  | Light                  | On/Off, Brightness | Tested |
-| Switch                  | Light                  | On/Off | Tested |
-| Shade                   | Cover                  | Open/Close, Position | Tested |
-| Scene                   | Scene                  | Activate | Tested |
-| OccupancySensor         | Binary Sensor         | Occupancy detection | Tested |
-| DoorSensor              | Binary Sensor         | Door open/closed status, Battery level | Not tested |
-| PhotoSensor             | Sensor                | Light level measurement (lux) | Not tested |
+| Bridge data                | Home Assistant Entity | Features |
+|----------------------------|-----------------------|----------|
+| Light load (Dimmable)      | Light                 | On/Off, Brightness |
+| Light load (Switched)      | Light                 | On/Off |
+| Shade                      | Cover                 | Open/Close/Stop, Position |
+| Scene                      | Scene                 | Recall |
+| Thermostat                 | Climate               | Mode, Setpoints, Fan, Action |
+| Media room                 | Media Player          | Power, Volume, Mute, Source, Transport, Now Playing |
+| Door / Lock / Gate         | Binary Sensor         | Open/Closed state |
 
-> **Note**: The OccupancySensor implementation has been thoroughly tested and works well with Crestron Home systems. The DoorSensor and PhotoSensor implementations are included but have not been tested with actual hardware yet.
+> **Note**: The occupancy and photo sensors exposed by the old Crestron web API are not part of the CRPC bridge feed and are no longer provided by this integration.
 
 ## Installation
 
-### HACS (Recommended)
+### Step 1: Install and start the CRPC bridge add-on
+
+The integration requires the CRPC bridge sidecar to be running and connected to your Crestron Home processor. Install the bridge as a Home Assistant add-on (or run the Go server anywhere on your network), configure it with your Crestron processor credentials, and optionally set an API token (`API_TOKEN`) on the bridge.
+
+Verify the bridge is up by opening `http://<bridge-host>:3131/crpc/status` — it should answer `{"connected": true}`.
+
+> All Crestron processor credentials live in the bridge add-on. The integration itself only needs to reach the bridge.
+
+### Step 2: Install the integration (HACS recommended)
 
 1. Make sure you have [HACS](https://hacs.xyz/) installed
 2. Go to HACS > Integrations > Click the three dots in the top right corner > Custom repositories
@@ -49,98 +61,58 @@ The integration communicates with the Crestron Home CWS (Crestron Web Service) s
 6. Click "Install"
 7. Restart Home Assistant
 
-### Manual Installation
+#### Manual Installation
 
 1. Download the latest release from the GitHub repository
 2. Extract the `custom_components/crestron_home` directory into your Home Assistant's `custom_components` directory
 3. Restart Home Assistant
 
-## Configuration
-
-### Getting an API Token
-
-![Crestron Home Integration](https://raw.githubusercontent.com/ruudruud/ha-crestron-home/main/images/web-api-settings.png)
-
-1. Open the Crestron Home Setup app
-2. Go to Settings (called Installer Settings)
-3. Tap System Control Options
-4. Tap Web API Settings
-5. Enable the Web API and generate a new API token
-6. Copy the token for use in the integration setup
-
-### Setting up the Integration
+### Step 3: Set up the Integration
 
 1. Go to Home Assistant > Settings > Devices & services
 2. Click "Add Integration"
 3. Search for "Crestron Home"
 4. Enter the following information:
-   - **Host**: The IP address or hostname of your Crestron Home processor
-   - **API Token**: The token you generated in the Crestron Home Setup app
-   - **Update Interval**: How often to poll for updates (in seconds)
-     - Default: 15 seconds, minimum: 10 seconds
-     - Lower values provide more responsive updates but increase system load
-   - **Device Types to Include**: Select which types of devices to include
-     - Lights: All dimmers and switches
-     - Shades: All motorized shades/covers
-     - Scenes: All scenes defined in your Crestron Home system
-     - Binary Sensors: Occupancy sensors and door sensors
-     - Sensors: Photosensors and other measurement devices
-   - **Ignored Device Names** (optional): Device name patterns to exclude
-     - Use `%` as wildcard (e.g., `%bathroom%` ignores all devices with "bathroom" in the name)
+   - **Bridge host**: The IP address or hostname where the CRPC bridge runs (for a local add-on this is usually the add-on hostname or the HA host itself)
+   - **Bridge port**: The bridge HTTP port (default: `3131`)
+   - **API token** (optional): Only needed if you configured a token on the bridge
+   - **Device types to include**: Lights, Shades, Scenes, Thermostats, Media Players, Doors
+   - **Ignored device names** (optional): Device name patterns to exclude, `%` is a wildcard (e.g., `%bathroom%`)
 5. Click "Submit"
-6. Please allow for some time for the device synchronization.
 
 ## Requirements
 
-- **Home Assistant Core**: Version 2024.2 or newer
-- **Dependencies**: aiohttp 3.8.0 or newer (for API communication)
-- **Hardware Requirements**:
-  - A Crestron Home system with CWS (Crestron Web Service) enabled
-  - Network connectivity between Home Assistant and the Crestron processor
-  - A valid API token for the Crestron Home system
+- **Home Assistant Core**: Version 2024.11 or newer
+- **CRPC bridge**: running and connected to the Crestron Home processor
+- **Dependencies**: aiohttp 3.8.0 or newer
 
 ## Technical Details
 
 This integration:
 
-- Uses the Crestron Home REST API to communicate with the Crestron Home system
-- Implements proper session management (Crestron sessions expire after 10 minutes)
-- Provides a configuration flow for easy setup through the Home Assistant UI
-- Supports multiple device types with appropriate Home Assistant entity representations
-- Includes an abstraction layer that maintains a consistent snapshot of all devices
-- Handles device state normalization and visibility logic
+- Uses the CRPC bridge REST API (JSON with Crestron's PascalCase field names) for discovery and commands
+- Subscribes to `ws://<bridge>/ws/json` and applies `stateUpdate` / `deviceAdd` / `deviceDelete` events directly to entities — no fast polling
+- Reconnects the websocket automatically with exponential backoff and marks entities unavailable while the bridge reports the Crestron processor link as down
+- Performs a full safety-net re-fetch every 5 minutes
+- Passes the optional bearer token as `Authorization: Bearer <token>` (REST) and `?token=` (websocket)
 
-### How It Works
+### Level conversions
 
-The integration polls your Crestron Home system at the configured interval to keep device states in sync. Between polls, it maintains a local snapshot of all devices so that Home Assistant always has up-to-date state information. Devices marked as hidden in the configuration are automatically hidden in Home Assistant as well.
+- Light levels and shade positions are 0–65535 on the Crestron side and converted to Home Assistant brightness (0–255) / cover position (0–100)
+- Thermostat setpoints are deci-degrees on the wire (790 = 79.0°) in the unit the thermostat reports (`DeciFahrenheit` / `DeciCelsius`)
+- Media room volume is 0–100 on the bridge and 0.0–1.0 in Home Assistant
 
-### Debug Script
+### Media room vs house room ids
 
-The integration includes a standalone debug script (`crestron_debug.py`) that connects directly to your Crestron Home system and displays device information in formatted tables. This is useful for troubleshooting without involving Home Assistant.
-
-```bash
-python3 crestron_debug.py --host <crestron_host> --token <api_token>
-```
-
-Options:
-- `--host`: IP address or hostname of the Crestron Home system
-- `--token`: API token for authentication
-- `--room`: Filter devices by room name
-- `--sort`: Sort by `name`, `room`, `status`, or `level` (default: `room`)
-- `--lights`: Show only lights (dimmers and switches)
-- `--sensors`: Show only sensors (occupancy, door, photo)
-- `--raw`: Show raw API data instead of formatted tables
-
-Host and token can also be set via a `.env` file to avoid passing them on every run.
+Crestron media rooms have their own id space. Media player entities are keyed by the **media room id** (`crestron_media_<id>`) but named and grouped by the **house room** the media room belongs to.
 
 ## Troubleshooting
 
 ### Connection Issues
 
-- Ensure your Crestron Home processor is reachable from your Home Assistant instance
-- Verify that the Web API is enabled in the Crestron Home Setup app
-- Check that the API token is valid and has not expired
-- Verify that the correct host/IP is configured
+- Check `http://<bridge-host>:<port>/crpc/status` from the Home Assistant host — it must return `{"connected": true}`
+- If it returns `{"connected": false}`, the bridge is up but the Crestron processor link is down — check the add-on logs and processor credentials
+- If you set an API token on the bridge, make sure the same token is configured in the integration
 
 ### Missing Devices
 
@@ -150,13 +122,17 @@ Host and token can also be set via a `.env` file to avoid passing them on every 
 
 ### Device Type Configuration
 
-When you configure the integration, you can select which device types (lights, shades, scenes, sensors) to include. Here's what happens when you change these settings:
+When you configure the integration, you can select which device types to include. Here's what happens when you change these settings:
 
 - **Adding Device Types**: When you add a device type, the integration will discover and add all devices of that type to Home Assistant.
 - **Removing Device Types**: When you remove a device type, all entities of that type will be completely removed from Home Assistant. This ensures your Home Assistant instance stays clean without orphaned entities.
 - **Re-adding Device Types**: If you later re-add a device type, the entities will be recreated with default settings.
 
 > **Note**: Any customizations you made to entities (such as custom names, icons, or area assignments) will be lost when you remove their device type from the configuration. These settings will need to be reapplied if you re-add the device type later.
+
+## Upgrading from 0.x (web API versions)
+
+Version 1.0.0 replaces the Crestron `/cws/api` web API with the CRPC bridge. Existing config entries cannot be migrated automatically: remove the old integration entry, install and start the bridge add-on, then add the integration again pointing at the bridge.
 
 ## Contributing
 
@@ -166,9 +142,7 @@ Contributions are welcome! Please see the [Contributing Guidelines](CONTRIBUTING
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## API Documentation
-
-Detailed Crestron Home REST API documentation is available in the [docs](docs/) directory.
+Based on [ha-crestron-home](https://github.com/ruudruud/ha-crestron-home) by @ruudruud, MIT.
 
 ## Changelog
 
@@ -176,7 +150,8 @@ See the [Changelog](CHANGELOG.md) for a history of changes to this integration.
 
 ## Acknowledgments
 
-This project was inspired by and adapted from the [Homebridge Crestron Home plugin](https://github.com/evgolsh/homebridge-crestron-home).
+- [ha-crestron-home](https://github.com/ruudruud/ha-crestron-home) by @ruudruud, which this integration is based on
+- The [Homebridge Crestron Home plugin](https://github.com/evgolsh/homebridge-crestron-home), which inspired the original project
 
 ## Disclaimer
 

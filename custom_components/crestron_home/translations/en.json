@@ -1,26 +1,26 @@
 {
-  "title": "Crestron Home",
+  "title": "Crestron Home (CRPC Bridge)",
   "config": {
     "step": {
       "user": {
-        "title": "Connect to Crestron Home",
-        "description": "Set up your Crestron Home integration",
+        "title": "Connect to the CRPC Bridge",
+        "description": "Point the integration at your CRPC bridge add-on (not the Crestron processor itself)",
         "data": {
-          "host": "Host (IP address or hostname)",
-          "token": "API Token",
-          "update_interval": "Update Interval (seconds)",
-          "enabled_device_types": "Add Device Types",
-          "ignored_device_names": "Ignored Device Names (optional)"
+          "host": "Bridge host (IP address or hostname)",
+          "port": "Bridge port",
+          "api_token": "API token (optional, only if the bridge has one set)",
+          "enabled_device_types": "Device types to include",
+          "ignored_device_names": "Ignored device names (optional, % is a wildcard)"
         }
       }
     },
     "error": {
-      "cannot_connect": "Failed to connect to Crestron Home",
-      "invalid_auth": "Invalid API token",
+      "cannot_connect": "Failed to connect to the CRPC bridge",
+      "invalid_auth": "The bridge rejected the API token",
       "unknown": "Unexpected error"
     },
     "abort": {
-      "already_configured": "Device is already configured"
+      "already_configured": "This bridge is already configured"
     }
   },
   "options": {
@@ -29,15 +29,14 @@
         "title": "Crestron Home Options",
         "description": "Configure your Crestron Home integration",
         "data": {
-          "update_interval": "Update Interval (seconds)",
-          "enabled_device_types": "Add Device Types",
-          "ignored_device_names": "Ignored Device Names (optional)"
+          "enabled_device_types": "Device types to include",
+          "ignored_device_names": "Ignored device names (optional, % is a wildcard)"
         }
       }
     },
     "error": {
-      "cannot_connect": "Failed to connect to Crestron Home",
-      "invalid_auth": "Invalid API token",
+      "cannot_connect": "Failed to connect to the CRPC bridge",
+      "invalid_auth": "The bridge rejected the API token",
       "unknown": "Unexpected error"
     }
   }

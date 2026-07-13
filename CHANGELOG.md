@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.0.0 (2026-07-12)
+
+### Breaking Changes
+
+- Replaced the Crestron `/cws/api` web API client with a local **CRPC bridge** sidecar (REST + WebSocket). The integration now connects to the bridge (default port 3131), not to the Crestron processor directly; Crestron credentials live in the bridge add-on
+- Config flow fields changed to `host`, `port`, and optional `api_token`; existing 0.x config entries cannot be migrated and must be re-added
+- Occupancy and photo sensors were removed (not available from the CRPC feed); the `sensor` platform was dropped
+- Binary sensors are now backed by IRpcDoors (door / lock / gate operational state) instead of web-API door sensors
+- Entities are now grouped into one Home Assistant device per Crestron room (suggested area = room name)
+- Removed the standalone `crestron_debug.py` script (web-API based)
+
+### Features
+
+- **Push updates**: websocket listener on `/ws/json` applies stateUpdate/deviceAdd/deviceDelete events immediately (`iot_class: local_push`); polling is reduced to a 5-minute safety-net refresh
+- Automatic websocket reconnect with exponential backoff; entities become unavailable while the bridge reports the processor link down
+- New **climate** platform: HVAC modes from `SupportedModes`, heat/cool/auto setpoints (deci-degree conversion, °F/°C per thermostat units), dual-setpoint auto, fan modes, HVAC action
+- New **media_player** platform: one player per Crestron media room with power, volume (0-100 ↔ 0.0-1.0), mute, source list/selection via routing, transport commands, and now-playing metadata including artwork
+- Optional bearer-token authentication against the bridge
+
+### Attribution
+
+- Based on ha-crestron-home by @ruudruud (MIT)
+
 ## 0.2.3 (2026-02-23)
 
 ### Bug Fixes
