@@ -8,7 +8,6 @@
         "data": {
           "host": "Bridge host (IP address or hostname)",
           "port": "Bridge port",
-          "api_token": "API token (optional, only if the bridge has one set)",
           "enabled_device_types": "Device types to include",
           "ignored_device_names": "Ignored device names (optional, % is a wildcard)"
         }

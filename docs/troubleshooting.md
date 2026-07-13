@@ -17,11 +17,11 @@ The bridge add-on's **Log** tab shows the processor side: connection state,
 The integration validates with `GET /crpc/status`. Check the bridge add-on is
 running, the host/port are right, and nothing on the network blocks port 3131.
 `curl http://<bridge>:3131/ping` should answer `{"message":"pong"}` from any
-machine (ping never requires the token).
+machine.
 
 **401 / invalid auth**
-The integration's API token doesn't match the bridge's `api_token`. They must
-be identical, or both empty.
+The bridge was started with an `API_TOKEN` env var, which the integration does
+not support — restart the bridge without it.
 
 **Bridge runs but "processor link down"**
 The bridge can't reach or authenticate to the processor. Check `ch_ip` and
@@ -44,8 +44,7 @@ itself went down. Everything recovers automatically when the link returns.
 **A device is missing**
 Check the integration's enabled device types and ignored-name patterns
 (Settings → Devices & Services → Crestron Home → Configure). Then confirm the
-device exists on the bridge: `curl -H "Authorization: Bearer <token>"
-http://<bridge>:3131/lights/all` (or `/shades/all`, `/thermostat/all`,
+device exists on the bridge: `curl http://<bridge>:3131/lights/all` (or `/shades/all`, `/thermostat/all`,
 `/scenes/all`, `/doors/all`, `/media/rooms`).
 
 ## Migrating from v1 (the web-API integration)

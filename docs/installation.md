@@ -20,12 +20,9 @@ Two pieces, installed in this order:
    `https://github.com/ryanww/ha-crpc-bridge-addon`.
 2. Install **Crestron CRPC Bridge** from the store.
 3. Open its **Configuration** tab and set:
-   - `ch_ip` — the processor's IP address
-   - `ch_password` — the processor password
-   - `api_token` — optional but recommended: any secret string; the
-     integration must present the same token
-   - leave `ch_uuid` empty (the bridge generates and persists a stable client
-     identity on first connect)
+   - **Processor IP address** and **Processor password**
+   (the bridge generates and persists its own stable client identity — no
+   UUID or token to manage)
 4. Start the add-on and check its **Log** tab — you should see
    `Connected to CH Processor` and `Crpc.Register ok`.
 
@@ -33,7 +30,7 @@ Running the container manually instead (HA Container/Core):
 
 ```sh
 docker run -d --name crpc-bridge \
-  -e CH_IP=<processor-ip> -e CH_PASSWORD='<password>' -e API_TOKEN='<secret>' \
+  -e CH_IP=<processor-ip> -e CH_PASSWORD='<password>' \
   -v crpc-bridge-data:/data -p 3131:3131 ghcr.io/ryanww/wms_ha-crestron-crpc-bridge
 ```
 
@@ -50,7 +47,6 @@ restarts.
    - Add-on on HA OS: the add-on hostname shown on its Info tab, or your HA
      host's IP; port `3131`
    - Manual container: that host's IP and mapped port
-   - `api_token`: the same value you set on the bridge (leave empty if unset)
 5. Pick which device types to expose, and optionally name patterns to ignore
    (`%` is a wildcard).
 

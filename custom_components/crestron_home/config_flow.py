@@ -132,7 +132,6 @@ class CrestronHomeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             mode=selector.NumberSelectorMode.BOX,
                         ),
                     ),
-                    vol.Optional(CONF_API_TOKEN, default=""): str,
                     vol.Optional(
                         CONF_ENABLED_DEVICE_TYPES, default=list(ALL_DEVICE_TYPES)
                     ): selector.SelectSelector(
