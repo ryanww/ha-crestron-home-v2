@@ -45,7 +45,7 @@ State changes made on Crestron keypads, the Crestron Home app, or by schedules a
 
 ### Step 1: Install and start the CRPC bridge add-on
 
-The integration requires the CRPC bridge sidecar to be running and connected to your Crestron Home processor. Install the bridge as a Home Assistant add-on (or run the Go server anywhere on your network), configure it with your Crestron processor credentials, and optionally set an API token (`API_TOKEN`) on the bridge.
+The integration requires the CRPC bridge sidecar to be running and connected to your Crestron Home processor. Install the bridge as a Home Assistant add-on (or run the Go server anywhere on your network), configure it with your Crestron processor credentials.
 
 Verify the bridge is up by opening `http://<bridge-host>:3131/crpc/status` — it should answer `{"connected": true}`.
 
@@ -75,7 +75,6 @@ Verify the bridge is up by opening `http://<bridge-host>:3131/crpc/status` — i
 4. Enter the following information:
    - **Bridge host**: The IP address or hostname where the CRPC bridge runs (for a local add-on this is usually the add-on hostname or the HA host itself)
    - **Bridge port**: The bridge HTTP port (default: `3131`)
-   - **API token** (optional): Only needed if you configured a token on the bridge
    - **Device types to include**: Lights, Shades, Scenes, Thermostats, Media Players, Doors
    - **Ignored device names** (optional): Device name patterns to exclude, `%` is a wildcard (e.g., `%bathroom%`)
 5. Click "Submit"
@@ -112,7 +111,6 @@ Crestron media rooms have their own id space. Media player entities are keyed by
 
 - Check `http://<bridge-host>:<port>/crpc/status` from the Home Assistant host — it must return `{"connected": true}`
 - If it returns `{"connected": false}`, the bridge is up but the Crestron processor link is down — check the add-on logs and processor credentials
-- If you set an API token on the bridge, make sure the same token is configured in the integration
 
 ### Missing Devices
 
