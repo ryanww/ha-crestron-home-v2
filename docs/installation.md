@@ -16,8 +16,8 @@ Two pieces, installed in this order:
 
 ## Step 1 — Install the bridge add-on
 
-1. Settings → Add-ons → Add-on Store → ⋮ → **Repositories**, add the bridge
-   add-on repository URL.
+1. Settings → Add-ons → Add-on Store → ⋮ → **Repositories**, add
+   `https://github.com/ryanww/ha-crpc-bridge-addon`.
 2. Install **Crestron CRPC Bridge** from the store.
 3. Open its **Configuration** tab and set:
    - `ch_ip` — the processor's IP address
@@ -34,7 +34,7 @@ Running the container manually instead (HA Container/Core):
 ```sh
 docker run -d --name crpc-bridge \
   -e CH_IP=<processor-ip> -e CH_PASSWORD='<password>' -e API_TOKEN='<secret>' \
-  -v crpc-bridge-data:/data -p 3131:3131 <registry>/wms_ha-crestron-crpc-bridge
+  -v crpc-bridge-data:/data -p 3131:3131 ghcr.io/ryanww/wms_ha-crestron-crpc-bridge
 ```
 
 The `/data` volume is what keeps the generated client UUID stable across
