@@ -138,6 +138,10 @@ Version 1.0.0 replaces the Crestron `/cws/api` web API with the CRPC bridge. Exi
 
 Contributions are welcome! Please see the [Contributing Guidelines](CONTRIBUTING.md) for more information.
 
+## Documentation
+
+Full documentation lives in [docs/](docs/README.md): [architecture](docs/architecture.md), [installation](docs/installation.md), [configuration](docs/configuration.md), [entities](docs/entities.md), and [troubleshooting](docs/troubleshooting.md).
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
