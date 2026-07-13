@@ -45,10 +45,13 @@ class CrpcBridgeClient:
     ) -> None:
         """Initialize the client."""
         self.hass = hass
+        #host may be pasted with a scheme; port arrives as float from HA's
+        #NumberSelector — normalize both or the URL is unconnectable
+        host = str(host).strip().removeprefix("http://").removeprefix("https://").strip("/")
         self.host = host
-        self.port = port
+        self.port = int(port)
         self.api_token = api_token or ""
-        self.base_url = f"http://{host}:{port}"
+        self.base_url = f"http://{self.host}:{self.port}"
         self._session = async_get_clientsession(hass)
 
     @property
